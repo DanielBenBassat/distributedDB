@@ -7,11 +7,12 @@ class SynchronizedDatabase(Database):
     def __init__(self, filename="database.pkl", mode="threads", max_readers=10):
         super().__init__(filename)
         self.mode = mode
-
+        self.max_readers = max_readers
         self.semaphore = Semaphore(max_readers)
         self.readers = 0
         self.write_lock = Lock()
         self.reader_count_lock = Lock()
+
 
     def acquire_read_lock(self):
         self.semaphore.acquire()
@@ -29,14 +30,15 @@ class SynchronizedDatabase(Database):
 
     def acquire_write_lock(self):
         count = 0
-        while count != self.ma:
+        while count < self.max_readers:
             self.semaphore.acquire()
             count += 1
             print(count)
         self.write_lock.acquire()
 
     def release_write_lock(self):
-
+        for i in range(self.max_readers):
+            self.semaphore.release()
         self.write_lock.release()
 
     def set_value(self, key, value):

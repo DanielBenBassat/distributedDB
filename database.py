@@ -1,10 +1,12 @@
 import pickle
 import threading
+from threading import Lock
 
 class Database:
     def __init__(self, filename='database.pkl'):
         self.dict = {}
         self.filename = filename
+        self.lock = Lock()
         self.load()
 
     def load(self):
@@ -29,33 +31,36 @@ class Database:
 
     def set_value(self, key, value):
         try:
-            self.dict[key] = value
-            self.save()
-            return True
+            with self.lock:
+                self.dict[key] = value
+                self.save()
+                return True
         except Exception as e:
             print(f"Error while setting value: {e}")
             return False
 
     def get_value(self, key):
         try:
-            if key in self.dict:
-                value = self.dict[key]
-            else:
-                value = None
-            return value
+            with self.lock():
+                if key in self.dict:
+                    value = self.dict[key]
+                else:
+                    value = None
+                return value
         except Exception as e:
             print(f"Error while getting value: {e}")
             return None
 
     def delete_value(self, key):
         try:
-            if key in self.dict:
-                value = self.dict[key]
-                del self.dict[key]
-                self.save()
-                return value
-            else:
-                return None
+            with self.lock():
+                if key in self.dict:
+                    value = self.dict[key]
+                    del self.dict[key]
+                    self.save()
+                    return value
+                else:
+                    return None
         except Exception as e:
             print(f"Error while deleting value: {e}")
             return None
