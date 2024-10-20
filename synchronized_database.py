@@ -1,7 +1,7 @@
 from database import Database
 from multiprocessing import Lock, Semaphore
 from threading import Lock, Semaphore
-
+import time
 
 class SynchronizedDatabase(Database):
     def __init__(self, filename="database.pkl", mode="threads", max_readers=10):
@@ -14,18 +14,16 @@ class SynchronizedDatabase(Database):
         self.reader_count_lock = Lock()
 
 
+
     def acquire_read_lock(self):
         self.semaphore.acquire()
         with self.reader_count_lock:
             self.readers += 1
-            if self.readers == 1:
-                self.write_lock.acquire()
+
 
     def release_read_lock(self):
         with self.reader_count_lock:
             self.readers -= 1
-            if self.readers == 0:
-                self.write_lock.release()
         self.semaphore.release()
 
     def acquire_write_lock(self):
@@ -52,6 +50,7 @@ class SynchronizedDatabase(Database):
 
     def get_value(self, key):
         self.acquire_read_lock()
+        time.sleep(2)
         value = None
         try:
             value = super().get_value(key)

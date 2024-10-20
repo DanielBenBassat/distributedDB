@@ -25,7 +25,7 @@ class Database:
         """
         try:
             with open(self.filename, 'wb') as f:
-                pickle.dump(self.my_dict, f)
+                pickle.dump(self.dict, f)
         except (FileNotFoundError, EOFError):
             pass
 
@@ -41,7 +41,7 @@ class Database:
 
     def get_value(self, key):
         try:
-            with self.lock():
+            with self.lock:
                 if key in self.dict:
                     value = self.dict[key]
                 else:
@@ -53,7 +53,7 @@ class Database:
 
     def delete_value(self, key):
         try:
-            with self.lock():
+            with self.lock:
                 if key in self.dict:
                     value = self.dict[key]
                     del self.dict[key]
