@@ -1,37 +1,54 @@
-from database import Database
-from multiprocessing import Lock, Semaphore
-from threading import Lock, Semaphore
+from file_database import FileDatabase
+import threading
+import multiprocessing
 import time
 
-class SynchronizedDatabase(Database):
-    def __init__(self, filename="database.pkl", mode="threads", max_readers=10):
+
+class SynchronizedDatabase(FileDatabase):
+    def __init__(self, filename, mode, max_readers=10):
+        """
+        initialize synchronized database that inherits from FileDatabase, create locks and semaphore according to mode
+        :param filename: file name
+        :param mode: threads or multiprocessing
+        :param max_readers:
+        """
         super().__init__(filename)
         self.mode = mode
         self.max_readers = max_readers
-        self.semaphore = Semaphore(max_readers)
-        self.readers = 0
-        self.write_lock = Lock()
-        self.reader_count_lock = Lock()
-
-
+        if self.mode == "threads":
+            self.semaphore = threading.Semaphore(max_readers)
+            self.write_lock = threading.Lock()
+            self.lock_for_semaphore_acquire = threading.Lock()
+        else:
+            self.semaphore = multiprocessing.Semaphore(max_readers)
+            self.write_lock = multiprocessing.Lock()
+            self.lock_for_semaphore_acquire = multiprocessing.Lock()
 
     def acquire_read_lock(self):
-        self.semaphore.acquire()
-        with self.reader_count_lock:
-            self.readers += 1
-
+        """
+        Acquires the read lock, allowing multiple readers to read together.
+        It blocks if the max number of readers is above 10
+        """
+        with self.lock_for_semaphore_acquire:
+            self.semaphore.acquire()
 
     def release_read_lock(self):
-        with self.reader_count_lock:
-            self.readers -= 1
+        """
+        Releases the read lock, decrementing the semaphore to allow other readers or writers.
+        """
         self.semaphore.release()
 
     def acquire_write_lock(self):
-        count = 0
-        while count < self.max_readers:
-            self.semaphore.acquire()
-            count += 1
-            print(count)
+        """
+
+        :return:
+        """
+        with self.lock_for_semaphore_acquire:
+            count = 0
+            while count < self.max_readers:
+                self.semaphore.acquire()
+                count += 1
+                print(count)
         self.write_lock.acquire()
 
     def release_write_lock(self):

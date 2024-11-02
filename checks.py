@@ -2,7 +2,6 @@ from database import Database
 from synchronized_database import SynchronizedDatabase
 from threading import Lock, Semaphore
 import threading
-import  time
 
 
 def test_simple_write_permission(db, key, value):
@@ -62,7 +61,7 @@ def test_read_blocked_by_write(db, key1, value1, key2):
     def reader(key):
         print("Reader waiting.")
         value = db.get_value(key)
-        print(f"Reader finished. Value: {value}")
+        print(f"Reader finished, Value: {value}")
 
     writer_thread = threading.Thread(target=writer, args=(key1, value1))
     reader_thread = threading.Thread(target=reader, args=(key2,))
@@ -75,23 +74,90 @@ def test_read_blocked_by_write(db, key1, value1, key2):
 
     print("Test 4: Read blocked by write passed.")
 
+def test_multiple_readers(db):
+    lock = threading.Lock()
+    def reader():
+        value = db.get_value("key5")
+        with lock:
+            print(f"Reader finished, value is {value}")
+
+    readers = []
+    for i in range(10):
+        readers_thread = threading.Thread(target=reader)
+        readers.append(readers_thread)
+
+    for reader_thread in readers:
+        reader_thread.start()
+
+    for reader_thread in readers:
+        reader_thread.join()
+
+    print("Test 5: Multiple readers passed.")
+
+def test_readers_then_writer_then_reader(db):
+    db.set_value("key", "value")
+    def reader():
+        value = db.get_value("key")
+        print(f"Reader got value: {value}")
+
+    def writer():
+        print("Writer waiting.")
+        db.set_value("key", "new_value")
+        print("Writer finished.")
+
+    readers = []
+    for i in range(5):
+        readers_thread = threading.Thread(target=reader)
+        readers.append(readers_thread)
+
+    writer_thread = threading.Thread(target=writer)
+    reader_thread2 = threading.Thread(target=reader)
+
+
+    for reader_thread in readers:
+        reader_thread.start()
+
+    writer_thread.start()
+    reader_thread2.start()
+
+
+
+    for reader_thread in readers:
+        reader_thread.join()
+
+    writer_thread.join()
+    reader_thread2.join()
+
+    print("Test 6: Readers then writer passed.")
+
 
 
 
 
 
 def main():
-    db = SynchronizedDatabase()
+    db = SynchronizedDatabase('database.pkl', "threads")
+
     # קבלת הרשאת כתיבה כאשר אין תחרות
-    #test_simple_write_permission(db, "name", "daniel")
+    test_simple_write_permission(db, "name", "daniel")
+
     # קבלת הרשאת קריאה כשאין תחרות
+    #db.set_value("name", "daniel")
     #test_simple_read_permission(db, "name")
+
     #   חסימת הרשאת כתיבה כאשר מישהו קורה
-    db.set_value("name", "daniel")
+    #db.set_value("name", "daniel")
     #test_write_blocked_by_read(db, "name", "key2", "value2") # add time.sleep(2) in get value
 
-    #קריאה כאשר מישהו כותב
-    test_read_blocked_by_write(db, "key1", "value1", "name")
+    # חסימת הרשאת קריאה כאשר מישהו כותב
+    #test_read_blocked_by_write(db, "key1", "value1", "name")
+
+    # עשרה קוראים במקביל
+    #db.set_value("key5", "value5")
+    #test_multiple_readers(db)
+
+    #חסימת הרשאת כתיבה לכותב כאשר יש קוראים, חסימת הרשאת קריאה לקוראים כאשר אותו כותב עובד
+    #test_readers_then_writer_then_reader(db)
 
 
 
