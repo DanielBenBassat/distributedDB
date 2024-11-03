@@ -40,8 +40,7 @@ class SynchronizedDatabase(FileDatabase):
 
     def acquire_write_lock(self):
         """
-
-        :return:
+        takes lock_for_semaphore_acquire to be the first one to take semaphoe when its realised, and then take all the semaphores until have all of them and takes the write_lock
         """
         with self.lock_for_semaphore_acquire:
             count = 0
@@ -52,6 +51,10 @@ class SynchronizedDatabase(FileDatabase):
         self.write_lock.acquire()
 
     def release_write_lock(self):
+        """
+        realise the semaphores and the write lock
+        :return:
+        """
         for i in range(self.max_readers):
             self.semaphore.release()
         self.write_lock.release()

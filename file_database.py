@@ -1,7 +1,7 @@
 from database import Database
 import pickle
-from threading import Lock
-
+from multiprocessing import Lock
+import os
 
 class FileDatabase(Database):
     def __init__(self, filename='database.pkl'):
@@ -11,17 +11,17 @@ class FileDatabase(Database):
         """
         super().__init__()
         self.filename = filename
-        self.lock = Lock()
-        self.save()
-
+        if os.path.exists(self.filename):
+            os.remove(self.filename)  # מחיקה של הקובץ הישן
+        with open(self.filename, 'wb') as f:
+            pickle.dump(self.dict, f)  # יצירת קובץ חדש ושמיר
     def load(self):
         """
         load the information from file to dict with pickle
         """
         try:
-            with self.lock:
-                with open(self.filename, 'rb') as f:
-                    self.dict = pickle.load(f)
+            with open(self.filename, 'rb') as f:
+                self.dict = pickle.load(f)
         except (FileNotFoundError, EOFError):
             print("error in loading file")
 
@@ -30,18 +30,25 @@ class FileDatabase(Database):
         save the dict into the file
         """
         try:
-            with self.lock:
-                with open(self.filename, 'wb') as f:
-                    pickle.dump(self.dict, f)
+            #שמירת המידע שקיים בקובץ
+            with open(self.filename, 'rb') as f:
+                data = pickle.load(f)
+
+
+        #העלאת המידע המידע של הקובץ והמילון לקובץ
+            with open(self.filename, 'wb') as f:
+                pickle.dump(self.dict, f)
+                pickle.dump(data, f)
+
         except (FileNotFoundError, EOFError):
-            pass
+            print("error in loading the dict to file")
 
     def set_value(self, key, value):
         """
         load the file to the dict, calls set_value from database with key and value and save the dict with the changes to the file
         :return: the value of set_value
         """
-        self.load()
+        #self.load()
         value = super().set_value(key, value)
         self.save()
         return value
