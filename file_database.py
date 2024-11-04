@@ -11,11 +11,9 @@ class FileDatabase(Database):
         """
         super().__init__()
         self.filename = filename
-        if os.path.exists(self.filename):
-            os.remove(self.filename)  # מחיקה של הקובץ הישן
-        with open(self.filename, 'wb') as f:
-            pickle.dump(self.dict, f)  # יצירת קובץ חדש ושמיר
-    def load(self):
+
+
+    def file_to_dict(self):
         """
         load the information from file to dict with pickle
         """
@@ -25,20 +23,14 @@ class FileDatabase(Database):
         except (FileNotFoundError, EOFError):
             print("error in loading file")
 
-    def save(self):
+    def dict_to_file(self):
         """
         save the dict into the file
         """
         try:
-            #שמירת המידע שקיים בקובץ
-            with open(self.filename, 'rb') as f:
-                data = pickle.load(f)
 
-
-        #העלאת המידע המידע של הקובץ והמילון לקובץ
             with open(self.filename, 'wb') as f:
                 pickle.dump(self.dict, f)
-                pickle.dump(data, f)
 
         except (FileNotFoundError, EOFError):
             print("error in loading the dict to file")
@@ -48,9 +40,9 @@ class FileDatabase(Database):
         load the file to the dict, calls set_value from database with key and value and save the dict with the changes to the file
         :return: the value of set_value
         """
-        #self.load()
+        self.file_to_dict()
         value = super().set_value(key, value)
-        self.save()
+        self.dict_to_file()
         return value
 
 
@@ -60,7 +52,7 @@ class FileDatabase(Database):
         load the file to the dict, calls get_value from database with key
         :return: the value of original get_value
         """
-        self.load()
+        self.file_to_dict()
         value = super().get_value(key)
         return value
 
@@ -70,8 +62,8 @@ class FileDatabase(Database):
         load the file to the dict, calls delete_value from database with key  and save the dict with the changes to the file
         :return: the value of original delete_value
         """
-        self.load()
+        self.file_to_dict()
         value = super().delete_value(key)
-        self.save()
+        self.dict_to_file()
         return value
 

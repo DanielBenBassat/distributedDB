@@ -18,10 +18,12 @@ class SynchronizedDatabase(FileDatabase):
         if self.mode == "threads":
             self.semaphore = threading.Semaphore(max_readers)
             self.write_lock = threading.Lock()
+            self.read_lock = threading.Lock()
             self.lock_for_semaphore_acquire = threading.Lock()
         else:
             self.semaphore = multiprocessing.Semaphore(max_readers)
             self.write_lock = multiprocessing.Lock()
+            self.read_lock = multiprocessing.Lock()
             self.lock_for_semaphore_acquire = multiprocessing.Lock()
 
     def acquire_read_lock(self):
@@ -31,12 +33,15 @@ class SynchronizedDatabase(FileDatabase):
         """
         with self.lock_for_semaphore_acquire:
             self.semaphore.acquire()
+            self.read_lock.acquire()
 
     def release_read_lock(self):
         """
         Releases the read lock, decrementing the semaphore to allow other readers or writers.
         """
+        self.read_lock.release()
         self.semaphore.release()
+
 
     def acquire_write_lock(self):
         """

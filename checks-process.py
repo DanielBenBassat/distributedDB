@@ -11,7 +11,7 @@ def writer(db, key, value):
     print("Write completed.")
 
 def reader(db,key):
-    #print("waiting")
+    print("waiting")
     #db_reader = SynchronizedDatabase('database.pkl', "process")
 
     value = db.get_value(key)
@@ -116,11 +116,11 @@ def main():
     #db_main.set_value(db_main, "name", "daniel")
     #test_write_blocked_by_read(db_main, "name", "key2", "value2") # add time.sleep(2) in get value
 
-    test_read_blocked_by_write(db_main, "key1", "value1", "name")
+    #test_read_blocked_by_write(db_main, "key1", "value1", "name")
 
     #test_multiple_readers(db_main, "name")
 
-    #test_readers_then_writer_then_reader(db_main, "name", "age", "17")
+    test_readers_then_writer_then_reader(db_main, "name", "age", "170")
 
 
 if __name__ == "__main__":
