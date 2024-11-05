@@ -3,44 +3,32 @@ from synchronized_database import SynchronizedDatabase
 import threading
 
 
-def test_simple_write_permission(db, key, value):
-    def writer(key1, value1):
-        db.set_value(key1, value1)
-        print("Write completed.")
+def writer(db, key, value):
+    db.set_value(key, value)
+    assert db.get_value(key) == value
 
-    writer_thread = threading.Thread(target=writer, args=(key, value))
+
+def reader(db, key):
+    db.get_value(key)
+
+
+
+def test_simple_write_permission(db, key, value):
+    writer_thread = threading.Thread(target=writer, args=(db, key, value))
     writer_thread.start()
     writer_thread.join()
-
-    assert db.get_value(key) == value
 
 
 
 def test_simple_read_permission(db, key):
-    def reader(key1):
-        value = db.get_value(key1)
-        print(f"Read value: {value}")
-
-    reader_thread = threading.Thread(target=reader, args=(key,))
+    reader_thread = threading.Thread(target=reader, args=(db, key,))
     reader_thread.start()
     reader_thread.join()
 
 
-
 def test_write_blocked_by_read(db, key1, key2, value2):
-
-    def reader(key):
-        print("Reader started.")
-        db.get_value(key)
-        print("Reader finished.")
-
-    def writer(key, value):
-        print("Writer waiting.")
-        db.set_value(key, value)
-        print("Writer finished.")
-
-    reader_thread = threading.Thread(target=reader, args=(key1,))
-    writer_thread = threading.Thread(target=writer, args=(key2, value2))
+    reader_thread = threading.Thread(target=reader, args=(db, key1,))
+    writer_thread = threading.Thread(target=writer, args=(db, key2, value2))
 
     reader_thread.start()
     writer_thread.start()
@@ -50,18 +38,8 @@ def test_write_blocked_by_read(db, key1, key2, value2):
 
 
 def test_read_blocked_by_write(db, key1, value1, key2):
-    def writer(key, value):
-        print("Writer started.")
-        db.set_value(key, value)
-        print("Writer finished.")
-
-    def reader(key):
-        print("Reader waiting.")
-        value = db.get_value(key)
-        print(f"Reader finished, Value: {value}")
-
-    writer_thread = threading.Thread(target=writer, args=(key1, value1))
-    reader_thread = threading.Thread(target=reader, args=(key2,))
+    writer_thread = threading.Thread(target=writer, args=(db, key1, value1))
+    reader_thread = threading.Thread(target=reader, args=(db, key2,))
 
     writer_thread.start()
     reader_thread.start()
@@ -70,16 +48,10 @@ def test_read_blocked_by_write(db, key1, value1, key2):
     reader_thread.join()
 
 
-def test_multiple_readers(db):
-    lock = threading.Lock()
-    def reader():
-        value = db.get_value("key5")
-        with lock:
-            print(f"Reader finished, value is {value}")
-
+def test_multiple_readers(db, key):
     readers = []
-    for i in range(10):
-        readers_thread = threading.Thread(target=reader)
+    for i in range(20):
+        readers_thread = threading.Thread(target=reader, args=(db, key,))
         readers.append(readers_thread)
 
     for reader_thread in readers:
@@ -89,30 +61,22 @@ def test_multiple_readers(db):
         reader_thread.join()
 
 
-def test_readers_then_writer_then_reader(db):
-    db.set_value("key", "value")
-
-    def reader():
-        value = db.get_value("key")
-        print(f"Reader got value: {value}")
-
-    def writer():
-        print("Writer waiting.")
-        db.set_value("key", "new_value")
-        print("Writer finished.")
-
+def test_readers_then_writer_then_reader(db, key, value, new_value):
+    db.set_value(key, value)
     readers = []
     for i in range(5):
-        readers_thread = threading.Thread(target=reader)
+        readers_thread = threading.Thread(target=reader, args=(db, key,))
         readers.append(readers_thread)
 
-    writer_thread = threading.Thread(target=writer)
-    reader_thread2 = threading.Thread(target=reader)
+    writer_thread = threading.Thread(target=writer, args=(db, key, new_value,))
 
     for reader_thread in readers:
         reader_thread.start()
 
     writer_thread.start()
+
+    reader_thread2 = threading.Thread(target=reader,  args=(db, key,))
+
     reader_thread2.start()
 
     for reader_thread in readers:
@@ -148,7 +112,7 @@ def main():
     #test_multiple_readers(db)
 
     #חסימת הרשאת כתיבה לכותב כאשר יש קוראים, חסימת הרשאת קריאה לקוראים כאשר אותו כותב עובד
-    test_readers_then_writer_then_reader(db)
+    test_readers_then_writer_then_reader(db, "name", "daniel", "dani")
 
 
 

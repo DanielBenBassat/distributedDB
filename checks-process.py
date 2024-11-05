@@ -80,14 +80,15 @@ def test_multiple_readers(db, key):
 
 
 
-def test_readers_then_writer_then_reader(db, key1, key2, value2):
+def test_readers_then_writer_then_reader(db, key, value, new_value):
+    db.set_value(key, value)
     readers = []
     for i in range(5):
-        reader_process = Process(target=reader, args=(db, key1,))
+        reader_process = Process(target=reader, args=(db, key,))
         readers.append(reader_process)
 
-    writer_process = Process(target=writer, args=(db, key2, value2,))
-    reader_process2 = Process(target=reader, args=(db, key2,))
+    writer_process = Process(target=writer, args=(db, key, new_value,))
+    reader_process2 = Process(target=reader, args=(db, key,))
 
     for reader_process in readers:
         reader_process.start()
@@ -101,26 +102,21 @@ def test_readers_then_writer_then_reader(db, key1, key2, value2):
     writer_process.join()
     reader_process2.join()
 
-    print("Test 6: Readers then writer passed.")
 
 def main():
-
-    # יצירת מופע של SynchronizedDatabase בתהליך הראשי
     db_main = SynchronizedDatabase('database.pkl', "process")
 
+    #test_simple_write_permission(db_main, "name", "daniel")
 
-
-    test_simple_write_permission(db_main, "name", "daniel")
     #test_simple_read_permission(db_main, "name")
 
-    #db_main.set_value(db_main, "name", "daniel")
     #test_write_blocked_by_read(db_main, "name", "key2", "value2") # add time.sleep(2) in get value
 
     #test_read_blocked_by_write(db_main, "key1", "value1", "name")
 
     #test_multiple_readers(db_main, "name")
 
-    test_readers_then_writer_then_reader(db_main, "name", "age", "170")
+    test_readers_then_writer_then_reader(db_main, "name", "daniel", "dani")
 
 
 if __name__ == "__main__":

@@ -11,6 +11,10 @@ class FileDatabase(Database):
         """
         super().__init__()
         self.filename = filename
+        # מחיקת המידע הישן שהיה בקובץ
+        if os.path.exists(self.filename):
+            os.remove(self.filename)
+        self.dict_to_file()
 
 
     def file_to_dict(self):
@@ -23,12 +27,12 @@ class FileDatabase(Database):
         except (FileNotFoundError, EOFError):
             print("error in loading file")
 
+
     def dict_to_file(self):
         """
         save the dict into the file
         """
         try:
-
             with open(self.filename, 'wb') as f:
                 pickle.dump(self.dict, f)
 
