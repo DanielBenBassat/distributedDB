@@ -1,7 +1,7 @@
 from database import Database
 import pickle
-from multiprocessing import Lock
 import os
+
 
 class FileDatabase(Database):
     def __init__(self, filename='database.pkl'):
@@ -16,7 +16,6 @@ class FileDatabase(Database):
             os.remove(self.filename)
         self.dict_to_file()
 
-
     def file_to_dict(self):
         """
         load the information from file to dict with pickle
@@ -26,7 +25,6 @@ class FileDatabase(Database):
                 self.dict = pickle.load(f)
         except (FileNotFoundError, EOFError):
             print("error in loading file")
-
 
     def dict_to_file(self):
         """
@@ -49,8 +47,6 @@ class FileDatabase(Database):
         self.dict_to_file()
         return value
 
-
-
     def get_value(self, key):
         """
         load the file to the dict, calls get_value from database with key
@@ -59,7 +55,6 @@ class FileDatabase(Database):
         self.file_to_dict()
         value = super().get_value(key)
         return value
-
 
     def delete_value(self, key):
         """

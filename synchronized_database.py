@@ -3,6 +3,7 @@ import threading
 import multiprocessing
 import os
 import logging
+import time
 
 LOG_FORMAT = '%(levelname)s | %(asctime)s | %(message)s'
 LOG_LEVEL = logging.DEBUG
@@ -14,6 +15,8 @@ class SynchronizedDatabase(FileDatabase):
     def __init__(self, filename, mode, max_readers=10):
         """
         initialize synchronized database that inherits from FileDatabase, create locks and semaphore according to mode
+        available_semaphore_taking: true if you have access for taking semaphore and false if not. avoid competition on taking semaphore,
+        the first writer or reader to arrive will be the first to get a semaphore
         :param filename: file name
         :param mode: threads or multiprocessing
         :param max_readers:
@@ -21,16 +24,15 @@ class SynchronizedDatabase(FileDatabase):
         super().__init__(filename)
         self.mode = mode
         self.max_readers = max_readers
+        self.available_semaphore_taking = True
         if self.mode == "threads":
             self.semaphore = threading.Semaphore(max_readers)
             self.write_lock = threading.Lock()
             self.read_lock = threading.Lock()
-            self.lock_for_taking_semaphore = threading.Lock()
         else:
             self.semaphore = multiprocessing.Semaphore(max_readers)
             self.write_lock = multiprocessing.Lock()
             self.read_lock = multiprocessing.Lock()
-            self.lock_for_taking_semaphore = multiprocessing.Lock()
 
         if not os.path.isdir(LOG_DIR):
             os.makedirs(LOG_DIR)
@@ -41,9 +43,11 @@ class SynchronizedDatabase(FileDatabase):
         Acquires the read lock, allowing multiple readers to read together.
         It blocks if the max number of readers is above 10
         """
-        with self.lock_for_taking_semaphore:
-            self.semaphore.acquire()
-            self.read_lock.acquire()
+
+        while not self.available_semaphore_taking:
+            pass
+        self.semaphore.acquire()
+        self.read_lock.acquire()
 
     def release_read_lock(self):
         """
@@ -53,18 +57,21 @@ class SynchronizedDatabase(FileDatabase):
         self.read_lock.release()
 
 
-
     def acquire_write_lock(self):
         """
         takes lock_for_semaphore_acquire to be the first one to take semaphoe when its realised, and then take all the semaphores until have all of them and takes the write_lock
         """
-        with self.lock_for_taking_semaphore:
-            count = 0
-            while count < self.max_readers:
-                self.semaphore.acquire()
-                count += 1
-                logging.debug(count)
-            self.write_lock.acquire()
+        while True:
+            while self.available_semaphore_taking:
+                logging.debug("writer is waiting")
+                self.available_semaphore_taking = False
+                count = 0
+                while count < self.max_readers:
+                    self.semaphore.acquire()
+                    count += 1
+                    logging.debug(count)
+                self.write_lock.acquire()
+                return
 
     def release_write_lock(self):
         """
@@ -74,9 +81,9 @@ class SynchronizedDatabase(FileDatabase):
         for i in range(self.max_readers):
             self.semaphore.release()
         self.write_lock.release()
+        self.available_semaphore_taking = True
 
     def set_value(self, key, value):
-        logging.debug("writer is waiting")
         self.acquire_write_lock()
         result = False
         try:
@@ -92,8 +99,8 @@ class SynchronizedDatabase(FileDatabase):
         try:
             value = super().get_value(key)
         finally:
-            self.release_read_lock()
             logging.debug(f"Read value: {value}")
+            self.release_read_lock()
             return value
 
     def delete_value(self, key):

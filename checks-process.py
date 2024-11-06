@@ -3,17 +3,12 @@ from synchronized_database import SynchronizedDatabase
 
 
 def writer(db, key, value):
-
-    #db_writer = SynchronizedDatabase('database.pkl', "process")
     print("writer waiting")
     db.set_value(key, value)
-    #assert db_writer.get_value(key) == value
-    print("Write completed.")
+    print('Write completed.')
 
-def reader(db,key):
-    print("waiting")
-    #db_reader = SynchronizedDatabase('database.pkl', "process")
 
+def reader(db, key):
     value = db.get_value(key)
     print(f"Read value: {value} for {key}")
 
@@ -45,7 +40,6 @@ def test_write_blocked_by_read(db,key1, key2, value2):
     writer_process.join()
 
 
-
 def test_read_blocked_by_write(db,key1, value1, key2):
 
     writer_process = Process(target=writer, args=(db, key1, value1))
@@ -60,11 +54,7 @@ def test_read_blocked_by_write(db,key1, value1, key2):
     print("Test 4: Read blocked by write passed.")
 
 
-
 def test_multiple_readers(db, key):
-
-
-
     readers = []
     for i in range(10):
         reader_process = Process(target=reader, args=(db, key,))
@@ -77,7 +67,6 @@ def test_multiple_readers(db, key):
         reader_process.join()
 
     print("Test 5: Multiple readers passed.")
-
 
 
 def test_readers_then_writer_then_reader(db, key, value, new_value):

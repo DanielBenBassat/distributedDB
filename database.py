@@ -1,5 +1,3 @@
-from threading import Lock
-
 
 class Database:
     def __init__(self):
@@ -61,8 +59,6 @@ class Database:
         finally:
             return value
 
-
-
     def print_dict(self):
         if self.dict:
             print("Current Dictionary:")
@@ -72,7 +68,23 @@ class Database:
             print("The dictionary is empty.")
 
 
+def run_tests(self):
+    """
+    Run a series of tests to check of the Database class.
+    """
+    assert self.set_value("name", "daniel") is True
+    assert self.set_value("age", "17") is True
 
+    assert self.get_value("name") == "daniel"
+    assert self.get_value("age") == 17
+
+    assert self.get_value("school") is None
+
+    assert self.delete_value("name") == "daniel"
+    assert self.get_value("name") is None, "key1 should no longer exist after deletion"
+    assert self.delete_value("age") == "17"
+
+    assert self.dict == {}
 
 
 
