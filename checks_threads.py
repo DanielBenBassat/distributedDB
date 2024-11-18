@@ -1,4 +1,4 @@
-from synchronized_database_win import SynchronizedDatabase
+from pywin32_synchronized import SynchronizedDatabase
 import threading
 
 
@@ -83,7 +83,7 @@ def test_readers_then_writer_then_reader(db, key, value, new_value):
 
 
 def main():
-    db = SynchronizedDatabase('databasewin.pkl', "threads")
+    db = SynchronizedDatabase('database.pkl')
 
     # קבלת הרשאת כתיבה כאשר אין תחרות
     #test_simple_write_permission(db, "name", "daniel")

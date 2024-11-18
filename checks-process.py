@@ -1,6 +1,6 @@
 from multiprocessing import Process
 #from synchronized_database import SynchronizedDatabase
-from synchronized_database_win import SynchronizedDatabase
+from pywin32_synchronized import SynchronizedDatabase
 
 
 def writer(db, key, value):
@@ -94,9 +94,9 @@ def test_readers_then_writer_then_reader(db, key, value, new_value):
 
 
 def main():
-    db_main = SynchronizedDatabase('database.pkl', "process")
+    db_main = SynchronizedDatabase('database.pkl')
 
-    #test_simple_write_permission(db_main, "name", "daniel")
+    test_simple_write_permission(db_main, "name", "daniel")
 
     #test_simple_read_permission(db_main, "name")
 
@@ -106,7 +106,7 @@ def main():
 
     #test_multiple_readers(db_main, "name")
 
-    test_readers_then_writer_then_reader(db_main, "name", "daniel", "dani")
+    #test_readers_then_writer_then_reader(db_main, "name", "daniel", "dani")
 
 
 if __name__ == "__main__":

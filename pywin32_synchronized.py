@@ -14,13 +14,12 @@ LOG_FILE = LOG_DIR + '/synchronized.log'
 
 
 class SynchronizedDatabase(FileDatabaseWin):
-    def __init__(self, filename,mode, max_readers=10):
+    def __init__(self, filename, max_readers=10):
         """
         initialize synchronized database that inherits from FileDatabase, create locks and semaphore according to mode
         available_semaphore_taking: true if you have access for taking semaphore and false if not. avoid competition on taking semaphore,
         the first writer or reader to arrive will be the first to get a semaphore
         :param filename: file name
-        :param mode: threads or multiprocessing
         :param max_readers:
         """
         super().__init__(filename)
