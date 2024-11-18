@@ -1,5 +1,6 @@
 from multiprocessing import Process
-from synchronized_database import SynchronizedDatabase
+#from synchronized_database import SynchronizedDatabase
+from synchronized_database_win import SynchronizedDatabase
 
 
 def writer(db, key, value):

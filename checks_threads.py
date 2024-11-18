@@ -1,5 +1,4 @@
-from database import Database
-from synchronized_database import SynchronizedDatabase
+from synchronized_database_win import SynchronizedDatabase
 import threading
 
 
@@ -47,7 +46,7 @@ def test_read_blocked_by_write(db, key1, value1, key2):
 
 def test_multiple_readers(db, key):
     readers = []
-    for i in range(10):
+    for i in range(100):
         readers_thread = threading.Thread(target=reader, args=(db, key,))
         readers.append(readers_thread)
 
@@ -84,7 +83,7 @@ def test_readers_then_writer_then_reader(db, key, value, new_value):
 
 
 def main():
-    db = SynchronizedDatabase('database.pkl', "threads")
+    db = SynchronizedDatabase('databasewin.pkl', "threads")
 
     # קבלת הרשאת כתיבה כאשר אין תחרות
     #test_simple_write_permission(db, "name", "daniel")
@@ -95,9 +94,10 @@ def main():
 
     #   חסימת הרשאת כתיבה כאשר מישהו קורה
     #db.set_value("name", "daniel")
-    #test_write_blocked_by_read(db, "name", "key2", "value2") # add time.sleep(2) in get value
+    #test_write_blocked_by_read(db, "name", "age", "17") # add time.sleep(2) in get value
 
     # חסימת הרשאת קריאה כאשר מישהו כותב
+    #db.set_value("name", "daniel")
     #test_read_blocked_by_write(db, "key1", "value1", "name")
 
     # עשרה קוראים במקביל
