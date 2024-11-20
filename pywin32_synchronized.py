@@ -51,7 +51,6 @@ class SynchronizedDatabase(FileDatabaseWin):
         win32event.ReleaseSemaphore(self.reader_semaphore, 1)
         win32event.ReleaseMutex(self.read_mutex)
 
-
     def acquire_write_lock(self):
         """
         takes lock_for_semaphore_acquire to be the first one to take semaphoe when its realised, and then take all the semaphores until have all of them and takes the write_lock
@@ -106,10 +105,3 @@ class SynchronizedDatabase(FileDatabaseWin):
         finally:
             self.release_write_lock()
             return result
-
-
-
-
-
-
-

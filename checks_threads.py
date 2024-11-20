@@ -46,7 +46,7 @@ def test_read_blocked_by_write(db, key1, value1, key2):
 
 def test_multiple_readers(db, key):
     readers = []
-    for i in range(100):
+    for i in range(1000):
         readers_thread = threading.Thread(target=reader, args=(db, key,))
         readers.append(readers_thread)
 
@@ -83,7 +83,7 @@ def test_readers_then_writer_then_reader(db, key, value, new_value):
 
 
 def main():
-    db = SynchronizedDatabase('database.pkl')
+    db = SynchronizedDatabase('database.pkl') 
 
     # קבלת הרשאת כתיבה כאשר אין תחרות
     #test_simple_write_permission(db, "name", "daniel")

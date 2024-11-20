@@ -25,12 +25,12 @@ class FileDatabaseWin(Database):
         if os.path.exists(self.filename):
             os.remove(self.filename)
         handle = win32file.CreateFile(
-                self.filename,  # The file name
-                win32file.GENERIC_READ | win32file.GENERIC_WRITE,  # Read and write access
-                win32file.FILE_SHARE_READ | win32file.FILE_SHARE_WRITE,  # Allow sharing for read and write
-                None,  # Default security attributes
+                self.filename,
+                win32file.GENERIC_READ | win32file.GENERIC_WRITE,
+                win32file.FILE_SHARE_READ | win32file.FILE_SHARE_WRITE,
+                None,
                 win32file.CREATE_ALWAYS,  # Create the file if it doesn't exist
-                0,  # Additional flags (none)
+                0,
                 None
         )
         handle.close()
@@ -43,12 +43,12 @@ class FileDatabaseWin(Database):
         """
         try:
             handle = win32file.CreateFile(
-                self.filename,  # File name
-                win32file.GENERIC_READ,  # Read-only access
-                0,  # No sharing
-                None,  # Default security
+                self.filename,
+                win32file.GENERIC_READ,
+                0,
+                None,
                 win32file.OPEN_EXISTING,  # Open the file if it exists
-                0,  # No additional flags
+                0,
                 None
             )
             hr, data = win32file.ReadFile(handle, os.path.getsize(self.filename))
@@ -66,17 +66,16 @@ class FileDatabaseWin(Database):
         Writes the dictionary to the file using pickle.
         """
         try:
-            # Serialize the dictionary into bytes
             data = pickle.dumps(self.dict)
 
             # Open the file for writing
             handle = win32file.CreateFile(
-                self.filename,  # The file name
+                self.filename,
                 win32file.GENERIC_WRITE,  # Write-only access
-                0,  # No sharing
-                None,  # Default security
-                win32file.CREATE_ALWAYS,  # Create or overwrite the file
-                0,  # No additional flags
+                0,
+                None,
+                win32file.CREATE_ALWAYS,
+                0,
                 None
             )
             win32file.WriteFile(handle, data)
